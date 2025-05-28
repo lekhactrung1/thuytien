@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <title>Cá thòi lòi</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: #000;
+      height: 100vh;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+    .falling {
+      position: absolute;
+      color: white;
+      font-size: 20px;
+      cursor: grab;
+      user-select: none;
+      pointer-events: auto;
+      white-space: nowrap;
+      animation: glow 2s infinite ease-in-out;
+      text-shadow: 0 0 5px #fff, 0 0 10px #ff69b4, 0 0 20px #ff69b4;
+    }
+    .falling.dragging {
+      cursor: grabbing;
+    }
+    .heart {
+      color: red;
+      font-size: 24px;
+      pointer-events: none;
+      animation: heart-glow 1.5s infinite ease-in-out;
+      text-shadow: 0 0 5px #ff0000, 0 0 10px #ff4d4d, 0 0 20px #ff4d4d;
+    }
+    @keyframes glow {
+      0% { opacity: 0.8; }
+      50% { opacity: 1; }
+      100% { opacity: 0.8; }
+    }
+    @keyframes heart-glow {
+      0% { opacity: 0.7; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.1); }
+      100% { opacity: 0.7; transform: scale(1); }
+    }
+  </style>
+</head>
+<body>
+
+<script>
+const messages = [
+  "Thủy Tiên♡"
+];
+
+let fallingObjects = [];
+
+function createFalling(type) {
+  if (fallingObjects.length >= 100) return;
+
+  const el = document.createElement("div");
+  el.className = "falling";
+
+  const isHeart = type === "heart";
+  el.innerText = isHeart ? "❤️" : messages[Math.floor(Math.random() * messages.length)];
+  if (isHeart) el.classList.add("heart");
+
+  let leftPos;
+  let safe = false;
+  let tryCount = 0;
+  while (!safe && tryCount < 50) {
+    leftPos = Math.random() * (window.innerWidth - 120);
+    safe = !fallingObjects.some(obj => {
+      const diff = Math.abs(parseFloat(obj.el.style.left) - leftPos);
+      return diff < 80 && Math.abs(obj.y - -30) < 60;
+    });
+    tryCount++;
+  }
+
+  el.style.left = leftPos + "px";
+  el.style.top = "-30px";
+  el.style.fontSize = (isHeart ? 20 + Math.random() * 10 : 14 + Math.random() * 4) + "px";
+
+  document.body.appendChild(el);
+
+  const state = {
+    el: el,
+    y: -30,
+    speed: 1 + Math.random() * 1.5,
+    dragging: false,
+    offsetX: 0,
+    offsetY: 0,
+    isHeart: isHeart
+  };
+
+  if (!isHeart) {
+    el.addEventListener("mousedown", (e) => {
+      state.dragging = true;
+      el.classList.add("dragging");
+      state.offsetX = e.clientX - el.offsetLeft;
+      state.offsetY = e.clientY - el.offsetTop;
+    });
+
+    document.addEventListener("mousemove", (e) => {
+      if (state.dragging) {
+        el.style.left = (e.clientX - state.offsetX) + "px";
+        el.style.top = (e.clientY - state.offsetY) + "px";
+      }
+    });
+
+    document.addEventListener("mouseup", () => {
+      if (state.dragging) {
+        state.dragging = false;
+        el.classList.remove("dragging");
+        state.y = parseFloat(el.style.top);
+      }
+    });
+  }
+
+  fallingObjects.push(state);
+}
+
+function update() {
+  fallingObjects = fallingObjects.filter(obj => {
+    if (!obj.dragging) {
+      obj.y += obj.speed;
+      obj.el.style.top = obj.y + "px";
+    }
+    if (obj.y > window.innerHeight + 50) {
+      obj.el.remove();
+      return false;
+    }
+    return true;
+  });
+}
+
+// Tạo nhiều hơn nhưng vẫn mượt
+setInterval(() => {
+  if (fallingObjects.length < 100) {
+    for (let i = 0; i < 2; i++) {
+      const type = Math.random() < 0.35 ? "heart" : "text";
+      createFalling(type);
+    }
+  }
+}, 500);
+
+setInterval(update, 20);
+
+// Nền sao lung linh
+const canvas = document.createElement("canvas");
+document.body.appendChild(canvas);
+const ctx = canvas.getContext("2d");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+window.addEventListener("resize", () => {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+});
+
+let stars = [];
+for (let i = 0; i < 150; i++) {
+  stars.push({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    radius: Math.random() * 1.5,
+    alpha: Math.random(),
+    delta: 0.01 + Math.random() * 0.02
+  });
+}
+
+function animateStars() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  for (let star of stars) {
+    ctx.beginPath();
+    ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(255, 255, 255, ${star.alpha})`;
+    ctx.fill();
+    star.alpha += star.delta;
+    if (star.alpha <= 0 || star.alpha >= 1) star.delta = -star.delta;
+  }
+  requestAnimationFrame(animateStars);
+}
+animateStars();
+</script>
+
+</body>
+</html>
