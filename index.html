@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Cá thòi lòi</title>
   <style>
     html, body {
@@ -12,11 +12,13 @@
       height: 100vh;
       font-family: 'Segoe UI', sans-serif;
     }
+
     canvas {
       position: absolute;
       top: 0;
       left: 0;
     }
+
     .falling {
       position: absolute;
       color: white;
@@ -28,9 +30,11 @@
       animation: glow 2s infinite ease-in-out;
       text-shadow: 0 0 5px #fff, 0 0 10px #ff69b4, 0 0 20px #ff69b4;
     }
+
     .falling.dragging {
       cursor: grabbing;
     }
+
     .heart {
       color: red;
       font-size: 24px;
@@ -38,11 +42,13 @@
       animation: heart-glow 1.5s infinite ease-in-out;
       text-shadow: 0 0 5px #ff0000, 0 0 10px #ff4d4d, 0 0 20px #ff4d4d;
     }
+
     @keyframes glow {
       0% { opacity: 0.8; }
       50% { opacity: 1; }
       100% { opacity: 0.8; }
     }
+
     @keyframes heart-glow {
       0% { opacity: 0.7; transform: scale(1); }
       50% { opacity: 1; transform: scale(1.1); }
@@ -130,6 +136,7 @@ function update() {
       obj.y += obj.speed;
       obj.el.style.top = obj.y + "px";
     }
+    // Nếu vượt khỏi màn hình → xóa
     if (obj.y > window.innerHeight + 50) {
       obj.el.remove();
       return false;
@@ -138,15 +145,11 @@ function update() {
   });
 }
 
-// Tạo nhiều hơn nhưng vẫn mượt
+// Giảm tốc độ tạo + giới hạn số lượng
 setInterval(() => {
-  if (fallingObjects.length < 100) {
-    for (let i = 0; i < 2; i++) {
-      const type = Math.random() < 0.35 ? "heart" : "text";
-      createFalling(type);
-    }
-  }
-}, 500);
+  const type = Math.random() < 0.4 ? "heart" : "text";
+  createFalling(type);
+}, 600);
 
 setInterval(update, 20);
 
