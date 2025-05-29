@@ -89,7 +89,8 @@ function createFalling(type) {
 
   el.style.left = leftPos + "px";
   el.style.top = "-30px";
-  el.style.fontSize = (isHeart ? 20 + Math.random() * 10 : 14 + Math.random() * 4) + "px";
+  // ✅ Font chữ to hơn
+  el.style.fontSize = (isHeart ? 20 + Math.random() * 10 : 20 + Math.random() * 6) + "px";
 
   document.body.appendChild(el);
 
@@ -104,6 +105,7 @@ function createFalling(type) {
   };
 
   if (!isHeart) {
+    // PC (chuột)
     el.addEventListener("mousedown", (e) => {
       state.dragging = true;
       el.classList.add("dragging");
@@ -125,6 +127,32 @@ function createFalling(type) {
         state.y = parseFloat(el.style.top);
       }
     });
+
+    // Mobile (touch)
+    el.addEventListener("touchstart", (e) => {
+      const touch = e.touches[0];
+      state.dragging = true;
+      el.classList.add("dragging");
+      state.offsetX = touch.clientX - el.offsetLeft;
+      state.offsetY = touch.clientY - el.offsetTop;
+    });
+
+    document.addEventListener("touchmove", (e) => {
+      if (state.dragging) {
+        e.preventDefault(); // chặn scroll
+        const touch = e.touches[0];
+        el.style.left = (touch.clientX - state.offsetX) + "px";
+        el.style.top = (touch.clientY - state.offsetY) + "px";
+      }
+    }, { passive: false });
+
+    document.addEventListener("touchend", () => {
+      if (state.dragging) {
+        state.dragging = false;
+        el.classList.remove("dragging");
+        state.y = parseFloat(el.style.top);
+      }
+    });
   }
 
   fallingObjects.push(state);
@@ -136,7 +164,6 @@ function update() {
       obj.y += obj.speed;
       obj.el.style.top = obj.y + "px";
     }
-    // Nếu vượt khỏi màn hình → xóa
     if (obj.y > window.innerHeight + 50) {
       obj.el.remove();
       return false;
@@ -145,7 +172,6 @@ function update() {
   });
 }
 
-// Giảm tốc độ tạo + giới hạn số lượng
 setInterval(() => {
   const type = Math.random() < 0.4 ? "heart" : "text";
   createFalling(type);
@@ -153,7 +179,6 @@ setInterval(() => {
 
 setInterval(update, 20);
 
-// Nền sao lung linh
 const canvas = document.createElement("canvas");
 document.body.appendChild(canvas);
 const ctx = canvas.getContext("2d");
